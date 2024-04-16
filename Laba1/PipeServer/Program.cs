@@ -14,8 +14,9 @@ class NamedPipeServer
 {
     static async Task Main(string[] args)
     {
+        Console.WriteLine("Запуск сервера...");
         string senderName = GetSenderName();
-
+        
         try
         {
             // Создаем именованный канал
@@ -30,7 +31,7 @@ class NamedPipeServer
                     // Отправляем сообщение клиенту
                     Console.Write("Введите сообщение для клиента: ");
                     string text = Console.ReadLine();
-                    SendMsg(server, senderName, text);
+                    await SendMsg(server, senderName, text);
 
 
                     if (await RecvMsg(server))
@@ -46,11 +47,11 @@ class NamedPipeServer
         }
     }
 
-    static async Task<bool> RecvMsg(NamedPipeServerStream con)
+    static async Task<bool> RecvMsg(NamedPipeServerStream connection)
     {
         // Читаем сообщение от сервера
         byte[] buffer = new byte[4096];
-        int bytesRead = await con.ReadAsync(buffer, 0, buffer.Length);
+        int bytesRead = await connection.ReadAsync(buffer, 0, buffer.Length);
 
         if (bytesRead == 0)
             return true;
@@ -62,19 +63,21 @@ class NamedPipeServer
         return false;
     }
 
-    static async void SendMsg(NamedPipeServerStream con, string senderName, string response)
+    static async Task SendMsg(NamedPipeServerStream connection, string senderName, string response)
     {
         Message messageToSend = new Message { Sender = senderName, Text = response };
 
         byte[] responseBytes = GetMessageBytes(messageToSend);
         // byte[] responseBytes = Encoding.UTF8.GetBytes(response);
-        await con.WriteAsync(responseBytes, 0, responseBytes.Length);
+        await connection.WriteAsync(responseBytes, 0, responseBytes.Length);
     }
 
     static string GetSenderName()
     {
         Console.Write("Введите имя отправителя: ");
-        return Console.ReadLine();
+        string senderName = Console.ReadLine();
+        if (string.IsNullOrEmpty(senderName)) senderName = "Server";
+        return senderName;
     }
 
     static byte[] GetMessageBytes(Message message)

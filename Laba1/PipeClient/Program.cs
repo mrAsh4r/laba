@@ -15,6 +15,7 @@ class NamedPipeClient
 {
     static async Task Main(string[] args)
     {
+        Console.WriteLine("Запуск клиента...");
         string senderName = GetSenderName();
 
         try
@@ -29,15 +30,16 @@ class NamedPipeClient
 
                 while (true)
                 {
-                    if (await RecvMsg(client)) {
+                    if (await RecvMsg(client))
+                    {
                         continue;
                     };
 
                     // Отправляем ответное сообщение серверу
                     Console.Write("Введите ответное сообщение для сервера: ");
                     string response = Console.ReadLine();
-                    SendMsg(client, senderName, response);
-                   
+                    await SendMsg(client, senderName, response);
+
                 }
             }
         }
@@ -46,10 +48,11 @@ class NamedPipeClient
             Console.WriteLine("Ошибка: " + ex.Message);
         }
     }
-    static async Task<bool> RecvMsg(NamedPipeClientStream con) {
+    static async Task<bool> RecvMsg(NamedPipeClientStream connection)
+    {
         // Читаем сообщение от сервера
         byte[] buffer = new byte[4096];
-        int bytesRead = await con.ReadAsync(buffer, 0, buffer.Length);
+        int bytesRead = await connection.ReadAsync(buffer, 0, buffer.Length);
 
         if (bytesRead == 0)
             return true;
@@ -60,19 +63,22 @@ class NamedPipeClient
 
         return false;
     }
-        
-    static async void SendMsg(NamedPipeClientStream con, string senderName, string response) {
+
+    static async Task SendMsg(NamedPipeClientStream connection, string senderName, string response)
+    {
         Message messageToSend = new Message { Sender = senderName, Text = response };
 
         byte[] responseBytes = GetMessageBytes(messageToSend);
         // byte[] responseBytes = Encoding.UTF8.GetBytes(response);
-        await con.WriteAsync(responseBytes, 0, responseBytes.Length);
+        await connection.WriteAsync(responseBytes, 0, responseBytes.Length);
     }
 
     static string GetSenderName()
     {
         Console.Write("Введите имя отправителя: ");
-        return Console.ReadLine();
+        string senderName = Console.ReadLine();
+        if (string.IsNullOrEmpty(senderName)) senderName = "Client";
+        return senderName;
     }
 
     static byte[] GetMessageBytes(Message message)
