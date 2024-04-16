@@ -3,6 +3,7 @@ using System.IO.Pipes;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Utils;
 using static System.Net.Mime.MediaTypeNames;
 
 
@@ -16,7 +17,7 @@ class NamedPipeClient
     static async Task Main(string[] args)
     {
         Console.WriteLine("Запуск клиента...");
-        string senderName = GetSenderName();
+        string senderName = SomeUtils.GetSenderName("Client");
 
         try
         {
@@ -30,13 +31,14 @@ class NamedPipeClient
 
                 while (true)
                 {
-                    await RecvMsg(client);
+                    
+                    await SomeUtils.RecvMsg(client);
 
 
                     // Отправляем ответное сообщение серверу
                     Console.Write("Введите ответное сообщение для сервера: ");
-                    string response = Console.ReadLine();
-                    await SendMsg(client, senderName, response);
+                    string response = Console.ReadLine()!;
+                    await SomeUtils.ClientSendMsg(client, new (senderName, response ));
 
                 }
             }
@@ -46,49 +48,5 @@ class NamedPipeClient
             Console.WriteLine("Ошибка: " + ex.Message);
         }
     }
-    static async Task RecvMsg(NamedPipeClientStream connection)
-    {
-        // Читаем сообщение от сервера
-        while (true)
-        {
-            byte[] buffer = new byte[4096];
-            int bytesRead = await connection.ReadAsync(buffer, 0, buffer.Length);
 
-            if (bytesRead == 0)
-                break;
-
-            Message receivedMessage = GetMessageFromBytes(buffer, bytesRead);
-            Console.WriteLine("(Сервер) [" + receivedMessage.Sender + "] >> " + receivedMessage.Text);
-        }
-    }
-
-
-    static async Task SendMsg(NamedPipeClientStream connection, string senderName, string response)
-    {
-        Message messageToSend = new Message { Sender = senderName, Text = response };
-
-        byte[] responseBytes = GetMessageBytes(messageToSend);
-        // byte[] responseBytes = Encoding.UTF8.GetBytes(response);
-        await connection.WriteAsync(responseBytes, 0, responseBytes.Length);
-    }
-
-    static string GetSenderName()
-    {
-        Console.Write("Введите имя отправителя: ");
-        string senderName = Console.ReadLine();
-        if (string.IsNullOrEmpty(senderName)) senderName = "Client";
-        return senderName;
-    }
-
-    static byte[] GetMessageBytes(Message message)
-    {
-        string messageJson = JsonSerializer.Serialize(message);
-        return Encoding.UTF8.GetBytes(messageJson);
-    }
-
-    static Message GetMessageFromBytes(byte[] buffer, int length)
-    {
-        string messageJson = Encoding.UTF8.GetString(buffer, 0, length);
-        return JsonSerializer.Deserialize<Message>(messageJson);
-    }
 }

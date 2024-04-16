@@ -30,7 +30,7 @@ class NamedPipeServer
                 {
                     // Отправляем сообщение клиенту
                     Console.Write("Введите сообщение для клиента: ");
-                    string text = Console.ReadLine();
+                    string text = Console.ReadLine()!;
                     await SendMsg(server, senderName, text);
 
 
@@ -75,7 +75,7 @@ class NamedPipeServer
     static string GetSenderName()
     {
         Console.Write("Введите имя отправителя: ");
-        string senderName = Console.ReadLine();
+        string senderName = Console.ReadLine()!;
         if (string.IsNullOrEmpty(senderName)) senderName = "Server";
         return senderName;
     }
