@@ -13,7 +13,7 @@ using Utils;
 class NamedPipeServer
 {
     static PriorityQueue<Message, int> messageQueue = new ();
-    static List<Message> receivedMessages = new ();
+    
 
 
     static async Task Main(string[] args)
@@ -90,6 +90,7 @@ class NamedPipeServer
 
         return true;
     }
+    /*
     static void SaveReceivedMessagesToFile()
     {
         string filePath = "received_messages.txt";
@@ -101,5 +102,5 @@ class NamedPipeServer
             }
         }
         Console.WriteLine($"Сохранено в файл: {filePath}");
-    }
+    }*/
 }

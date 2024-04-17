@@ -34,11 +34,25 @@ class NamedPipeClient
                     
                     await SomeUtils.ClientRecvMsg(client);
 
+                    var cancellationTokenSource = new CancellationTokenSource();
+                    var cancellationToken = cancellationTokenSource.Token;
+                    // Ожидание нажатия Ctrl+C
+                    var task1 = Task.Run(() =>
+                    {
+                        Console.CancelKeyPress += (sender, e) =>
+                        {
+                            e.Cancel = true;
+                            cancellationTokenSource.Cancel();
+                        };
+                    });
 
-                    // Отправляем ответное сообщение серверу
-                    Console.Write("Введите ответное сообщение для сервера: ");
-                    string response = Console.ReadLine()!;
-                    await SomeUtils.ClientSendMsg(client, new (senderName, response ));
+                    while (!cancellationToken.IsCancellationRequested)
+                    {
+                        // Отправляем ответное сообщение серверу
+                        Console.Write("Введите ответное сообщение для сервера: ");
+                        string response = Console.ReadLine()!;
+                        await SomeUtils.ClientSendMsg(client, new(senderName, response));
+                    }
                     await SomeUtils.ClientSendMsg(client, new ("client","endofc" ));
 
                 }

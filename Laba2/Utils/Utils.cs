@@ -52,19 +52,27 @@ public struct Message
 
     public static async Task ServerRecvMsg(NamedPipeServerStream connection)
     {
+        Queue<Message> receivedMessages = new();
         // Читаем сообщение от сервера
         while (true)
         {
             byte[] buffer = new byte[4096];
             int bytesRead = await connection.ReadAsync(buffer, 0, buffer.Length);
 
-
+            if (bytesRead == 0) continue;
             Message receivedMessage = GetMessageFromBytes(buffer, bytesRead);
 
             if (receivedMessage.Text == "endofc") break;
-
-            Console.WriteLine("(Клиент) [" + receivedMessage.Sender + "] >> " + receivedMessage.Text);
+            receivedMessages.Enqueue(receivedMessage);
+            
         }
+        while (receivedMessages.Count > 0)
+        {
+            var message = receivedMessages.Dequeue();
+            if (String.IsNullOrEmpty(message.Text)) continue;
+            Console.WriteLine("(Клиент) [" + message.Sender + "] >> " + message.Text);
+        }
+        
     }
 
     public static string GetSenderName(string AltName)
