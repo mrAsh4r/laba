@@ -33,7 +33,7 @@ public struct Message
         await connection.WriteAsync(responseBytes, 0, responseBytes.Length);
     }
 
-    public static async Task RecvMsg(NamedPipeClientStream connection)
+    public static async Task ClientRecvMsg(NamedPipeClientStream connection)
     {
         // Читаем сообщение от сервера
         while (true)
@@ -50,10 +50,27 @@ public struct Message
         }
     }
 
+    public static async Task ServerRecvMsg(NamedPipeServerStream connection)
+    {
+        // Читаем сообщение от сервера
+        while (true)
+        {
+            byte[] buffer = new byte[4096];
+            int bytesRead = await connection.ReadAsync(buffer, 0, buffer.Length);
+
+
+            Message receivedMessage = GetMessageFromBytes(buffer, bytesRead);
+
+            if (receivedMessage.Text == "endofc") break;
+
+            Console.WriteLine("(Клиент) [" + receivedMessage.Sender + "] >> " + receivedMessage.Text);
+        }
+    }
+
     public static string GetSenderName(string AltName)
     {
         Console.Write("Введите имя отправителя: ");
-        string senderName = Console.ReadLine();
+        string senderName = Console.ReadLine()!;
         return string.IsNullOrEmpty(senderName) ? AltName : senderName;
     }
 

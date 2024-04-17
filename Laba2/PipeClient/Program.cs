@@ -32,13 +32,14 @@ class NamedPipeClient
                 while (true)
                 {
                     
-                    await SomeUtils.RecvMsg(client);
+                    await SomeUtils.ClientRecvMsg(client);
 
 
                     // Отправляем ответное сообщение серверу
                     Console.Write("Введите ответное сообщение для сервера: ");
                     string response = Console.ReadLine()!;
                     await SomeUtils.ClientSendMsg(client, new (senderName, response ));
+                    await SomeUtils.ClientSendMsg(client, new ("client","endofc" ));
 
                 }
             }

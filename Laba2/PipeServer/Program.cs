@@ -30,10 +30,12 @@ class NamedPipeServer
                 Console.WriteLine("Клиент подключен.");
 
                 // Создаем токен отмены для отслеживания Ctrl+C
-                var cancellationTokenSource = new CancellationTokenSource();
-                var cancellationToken = cancellationTokenSource.Token;
+                
+
                 while (true)
                 {
+                    var cancellationTokenSource = new CancellationTokenSource();
+                    var cancellationToken = cancellationTokenSource.Token;
                     // Ожидание нажатия Ctrl+C
                     var task1 = Task.Run(() =>
                     {
@@ -56,9 +58,11 @@ class NamedPipeServer
                         var message = messageQueue.Dequeue();
                         await SomeUtils.ServerSendMsg(server, message);
                     }
-                    await SomeUtils.ServerSendMsg(server, new Message { Sender = "server", Text = "endofc" });
+                    await SomeUtils.ServerSendMsg(server, new ("server","endofc" ));
                     // Сохранение полученных сообщений в файл
                     //SaveReceivedMessagesToFile();
+
+                    await SomeUtils.ServerRecvMsg(server);
                 }
             }
         }
